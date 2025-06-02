@@ -167,6 +167,21 @@ for iter in range(3): #Hace referencia a las generaciones de cromosomas
   print("\n Poblacion Iteración ", iter+1, "\n", poblIt)
   fitness, total = evalua(n, x, poblIt, utilidad, pesos)
   imprime(n, total, fitness, poblIt)
+
+expected = 15
+# Filtrar individuos válidos (fitness no nulo) ya que fitness 0 indica violación de restricciones
+valid = fitness > 0
+if np.any(valid):
+  # Calcular la diferencia absoluta entre el fitness válido y el resultado esperado
+  valid_indices = np.where(valid)[0]
+  diferencias = np.abs(fitness[valid_indices] - expected)
+  min_index_valid = np.argmin(diferencias)
+  min_index = valid_indices[min_index_valid]
+  print("Hijo con fitness más cercano a", expected, ":",
+      poblIt[min_index], "con fitness:", fitness[min_index])
+else:
+  print("Ningún hijo cumple las restricciones de capacidad.")
+
     
 
 
