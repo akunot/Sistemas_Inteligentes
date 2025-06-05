@@ -1,6 +1,9 @@
 ## CREADO NDD Sept 2019
 import random
 import numpy as np
+import matplotlib.pyplot as plt
+
+mejores_fitness = []
 
 
 """   Comentarios son Una Linea: #
@@ -37,15 +40,20 @@ def evalua(n, x, poblIt, utilidad, pesos):
     return fitness, total
 
 def imprime(n,total,fitness,poblIt):
+    global mejores_fitness
     #Tabla de evaluación de la Población
     acumula=0
     print ("\n",'Tabla Iteración:',"\n")
     for i in range(0, n):
       probab=fitness[i]/total
       acumula+=probab
-      print([i+1]," ",poblIt[i],"  ",fitness[i]," ","{0:.3f}".format(probab)," ","{0:.3f}".format(acumula))
+      print(f"{i+1:<10} {str(poblIt[i]):<40} {fitness[i]:<10.2f} {probab:<15.3f} {acumula:<10.3f}")
       acumulado[i]=acumula
     print("Suma Z:      ", total)
+
+    # Agregar el mayor fitness de la iteración a la lista de mejores_fitness
+    best = float(max(fitness))
+    mejores_fitness.append(best)
     return acumulado
 
 def seleccion(acumulado):
@@ -145,7 +153,7 @@ imprime(n,total,fitness,poblIt)
 # Inicia Iteraciones
 
 # Crear vector de 5x2 vacio  a = numpy.zeros(shape=(5,2))
-for iter in range(3): #Hace referencia a las generaciones de cromosomas
+for iter in range(20): #Hace referencia a las generaciones de cromosomas
   print("\n Iteración ", iter+1)
   
   # Iterar de 2 en 2 hasta completar todos los hijos (n es par)
@@ -182,6 +190,12 @@ if np.any(valid):
 else:
   print("Ningún hijo cumple las restricciones de capacidad.")
 
+def plot_fitness():
+  global mejores_fitness
+  plt.plot(mejores_fitness)
+  plt.xlabel('Iteración')
+  plt.ylabel('Fitness')
+  plt.title('Mejores Fitness')
+  plt.show()
     
-
-
+plot_fitness()

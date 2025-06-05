@@ -2,6 +2,9 @@
 import random
 import numpy as np
 import math as m
+import matplotlib.pyplot as plt
+
+mejores_fitness = []
 
 
 """   Comentarios son Una Linea: #
@@ -57,28 +60,34 @@ def evalua(n, x, poblIt, utilidad, pesos):
     return fitness, total
 
 def imprime(n,total,fitness,poblIt):
-    # Tabla de evaluación de la Población con títulos y conversión de bits a decimal
-    def bin_to_int(bits):
-      valor = 0
-      for idx, bit in enumerate(bits[::-1]):
-        valor += bit * (2 ** idx)
-      return valor
+  global mejores_fitness
+  # Tabla de evaluación de la Población con títulos y conversión de bits a decimal
+  def bin_to_int(bits):
+    valor = 0
+    for idx, bit in enumerate(bits[::-1]):
+      valor += bit * (2 ** idx)
+    return valor
 
-    print("\nTabla Iteración:\n")
-    print(f"{'Individuo':<10} {'Genotipo':<40} {'Fenotipo':<25} {'Fitness':<10} {'Probabilidad':<15} {'Acumulado':<10}")
-    acumula = 0
-    for i in range(n):
-      probab = fitness[i] / total if total != 0 else 0
-      acumula += probab
-      # Convertir cada sublista (variable) de bits a su valor decimal correspondiente.
-      if poblIt[i] == 0:
-          decimal_values = "Invalid"
-      else:
-          decimal_values = [bin_to_int(bits) for bits in poblIt[i]]
-      print(f"{i+1:<10} {str(poblIt[i]):<40} {str(decimal_values):<25} {fitness[i]:<10} {probab:<15.3f} {acumula:<10.3f}")
-      acumulado[i] = acumula
-    print("Suma Z:      ", total)
-    return acumulado
+  print("\nTabla Iteración:\n")
+  print(f"{'Individuo':<10} {'Genotipo':<40} {'Fenotipo':<25} {'Fitness':<10} {'Probabilidad':<15} {'Acumulado':<10}")
+  acumula = 0
+  for i in range(n):
+    probab = fitness[i] / total if total != 0 else 0
+    acumula += probab
+    # Convertir cada sublista (variable) de bits a su valor decimal correspondiente.
+    if poblIt[i] == 0:
+      decimal_values = "Invalid"
+    else:
+      decimal_values = [bin_to_int(bits) for bits in poblIt[i]]
+    print(f"{i+1:<10} {str(poblIt[i]):<40} {str(decimal_values):<25} {fitness[i]:<10} {probab:<15.3f} {acumula:<10.3f}")
+    acumulado[i] = acumula
+  print("Suma Z:      ", total)
+
+  # Agregar el mayor fitness de la iteración a la lista de mejores_fitness
+  best = float(max(fitness))
+  mejores_fitness.append(best)
+
+  return acumulado
 
 def seleccion(acumulado):
     escoje = np.random.rand()
@@ -98,10 +107,6 @@ def seleccion(acumulado):
     # Unificar listas de listas en una sola lista
     flattened = [bit for sublist in padre for bit in sublist]
     return flattened
-
-def bin_to_int(bits):
-    raise NotImplementedError
-    
     
 def cruce(a1,p1,p2):
     if a1<Pcruce:
@@ -244,7 +249,7 @@ imprime(n,total,fitness,poblIt)
 # Inicia Iteraciones
 
 # Crear vector de 5x2 vacio  a = numpy.zeros(shape=(5,2))
-for iter in range(5): #Hace referencia a las generaciones de cromosomas
+for iter in range(100): #Hace referencia a las generaciones de cromosomas
   print("\n Iteración ", iter+1)
   
   # Iterar de 2 en 2 hasta completar todos los hijos (n es par)
@@ -281,6 +286,12 @@ if np.any(valid):
 else:
   print("Ningún hijo cumple las restricciones de capacidad.")
 
-    
+def plot_fitness():
+  global mejores_fitness
+  plt.plot(mejores_fitness)
+  plt.xlabel('Iteración')
+  plt.ylabel('Fitness')
+  plt.title('Mejores Fitness')
+  plt.show()
 
-
+plot_fitness()
