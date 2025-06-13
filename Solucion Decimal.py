@@ -37,36 +37,50 @@ def evalua(n, x, poblIt):
     binary_str = "".join(str(bit) for bit in poblIt[i])
     bin2dec = int(binary_str, 2)
     xi[i] = Xmin+bin2dec*(Xmax-Xmin)/(2**lind-1)
-    fitness[i] = (m.sin(10*xi[i])**2)/(1+xi[i])
-    total += fitness[i]
+
+     # Penalización por muerte si está en (3, 4). Se usa en caso de que el valor de xi sea inválido
+    if 3 < xi[i] < 4:
+      fitness[i] = -np.inf  # Valor inválido, lo eliminaremos luego
+    else:
+      fitness[i] = (32 * xi[i] - 2 * xi[i] ** 2)
+      total += fitness[i]
+
   return fitness, total, xi, cromosoma
 
 def imprime(n,total,fitness,poblIt,xi,cromosoma):
     global mejores_fitness
-    #Tabla de evaluación de la Población
-    acumula=0
+    acumula = 0
     print("\nTabla Iteración:")
-    print("{:^10} {:^15} {:^15} {:^15} {:^15} {:^15} {:^15}".format("Individuo", "Población", "Cromosoma", "Xi", "Fitness", "Probabilidad", "Acumulado"))
-    for i in range(0, n):
-      probab = fitness[i] / total
-      acumula += probab
-      print("{:^10} {:^15} {:^15} {:^15.3f} {:^15.3f} {:^15.3f} {:^15.3f}".format(
-          i+1, str(poblIt[i]), str(cromosoma[i]), xi[i], fitness[i], probab, acumula))
-      acumulado[i] = acumula
+    print("{:^10} {:^15} {:^15} {:^15} {:^15} {:^15} {:^15}".format(
+        "Individuo", "Población", "Cromosoma", "Xi", "Fitness", "Probabilidad", "Acumulado"))
+
+    for i in range(n):
+        if fitness[i] == -np.inf or total == 0:
+            probab = 0
+        else:
+            probab = fitness[i] / total
+        acumula += probab
+        print("{:^10} {:^15} {:^15} {:^15.3f} {:^15} {:^15.3f} {:^15.3f}".format(
+            i + 1, str(poblIt[i]), str(cromosoma[i]), xi[i],
+            "-" if fitness[i] == -np.inf else f"{fitness[i]:.3f}",
+            probab, acumula))
+        acumulado[i] = acumula
+
     print("Suma Z:      ", total)
-    best = float(max(fitness))
+    best = float(np.max(fitness[fitness != -np.inf])) if np.any(fitness != -np.inf) else 0
     mejores_fitness.append(best)
     return acumulado
 
 def seleccion(acumulado):
-    escoje=np.random.rand()
+    escoje = np.random.rand()
     print("escoje:      ", escoje)
     
-    for i in range(0,lind):
-      if acumulado[i]>escoje:
-         padre=poblIt[i]
-         break
-    return (padre)
+    for i in range(0, lind):
+        if acumulado[i] > escoje:
+            padre = poblIt[i]
+            return padre
+    # Return the last individual as default if no father is chosen in the loop
+    return poblIt[-1]
     
     
 def cruce(a1,p1,p2):
@@ -104,13 +118,14 @@ def mutar(individuo, Pmuta):
       
     
 #### Parametros #####
-num_decimales=2
+num_decimales=1
 Xmin=0
-Xmax=1
+Xmax=12
 lind = int(round(m.log2((Xmax - Xmin) * 10**num_decimales)))
-x=lind  #numero de variables de decision - Elementos diferentes: x
-Pcruce=0.9  #Probabilidad de Cruce
-Pmuta=0.1   #Probabilidad de Mutación
+x= 5  #numero de individuos en la poblacion
+Pcruce=0.98  #Probabilidad de Cruce
+Pmuta=0.15   #Probabilidad de Mutación
+elitismo=1   #Hace referencia a la cantidad de individuos elitistas
 
 
 fitness= np.empty((lind))
@@ -150,28 +165,44 @@ imprime(lind,total,fitness,poblIt,xi,cromosoma)
 # Inicia Iteraciones
 
 # Crear vector de 5x2 vacio  a = numpy.zeros(shape=(5,2))
-for iter in range(50): #Hace referencia a las generaciones de cromosomas
-  print("\n Iteración ", iter+1)
-  
-  # Iterar de 2 en 2 hasta completar todos los hijos (n es par)
+for iter in range(3):
+  print("\n Iteración ", iter + 1)
+
+  # ELITISMO: guardar el mejor individuo
+  elite_idx = np.argmax(fitness)
+  elite_individuo = np.copy(poblIt[elite_idx])
+  elite_fitness = fitness[elite_idx]
+
   for i in range(0, lind - 1, 2):
-    papa1 = seleccion(acumulado)  # Padre 1
-    print("padre 1:", papa1)
-    papa2 = seleccion(acumulado)  # Padre 2
-    print("padre 2:", papa2)
-    
-    hijoA, hijoB = cruce(np.random.rand(), papa1, papa2)
-    if np.array_equal(hijoA, 0) or np.array_equal(hijoB, 0):
-      print("Uno de los hijos fue descartado, realizando nuevo cruce")
+      papa1 = seleccion(acumulado)
+      print("padre 1:", papa1)
+      papa2 = seleccion(acumulado)
+      print("padre 2:", papa2)
+
       hijoA, hijoB = cruce(np.random.rand(), papa1, papa2)
-    print("hijo1: ", hijoA)
-    poblIt[i] = hijoA
-    print("hijo2: ", hijoB)
-    poblIt[i+1] = hijoB
-  
-  print("\n Poblacion Iteración ", iter+1, "\n", poblIt)
-  fitness, total,xi,cromosoma = evalua(lind, x, poblIt)
-  imprime(lind,total,fitness,poblIt,xi,cromosoma)
+
+      print("hijo1: ", hijoA)
+      poblIt[i] = hijoA
+      print("hijo2: ", hijoB)
+      poblIt[i+1] = hijoB
+
+  # Insertar al elite al azar reemplazando a alguien (excepto si ya está)
+  replace_idx = random.randint(0, lind - 1)
+  print("Elitismo aplicado: Reemplazando índice", replace_idx, "con elite")
+  poblIt[replace_idx] = elite_individuo
+
+  print("\n Poblacion Iteración ", iter + 1, "\n", poblIt)
+
+  fitness, total, xi, cromosoma = evalua(lind, x, poblIt)
+
+  # Eliminar individuos no factibles (fitness -inf) al final:
+  for i in range(len(fitness)):
+      if fitness[i] == -np.inf:
+          print("Eliminando individuo no factible:", poblIt[i], "Xi:", xi[i])
+          poblIt[i] = np.random.randint(0, 2, x)  # reemplazar aleatorio
+          fitness[i] = 0
+
+  imprime(lind, total, fitness, poblIt, xi, cromosoma)
 
 
 max_index = np.argmax(fitness)
