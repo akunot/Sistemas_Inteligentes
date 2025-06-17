@@ -28,7 +28,7 @@ poblInicial = np.array([cromosoma1, cromosoma2, cromosoma3, cromosoma4]
 def evalua(n, x, poblIt, utilidad, pesos):
     fitness = np.zeros(n)  # Inicializado correctamente
     total = 0
-    capacidad_max = 60
+    capacidad_max = 125
 
     def bin_to_int(bits):
       # Convierte una lista de bits a entero: [1,0] -> 1*2^1 + 0*2^0
@@ -164,7 +164,7 @@ def cruce(a1,p1,p2):
         valor += bit * (2 ** idx)
       return valor
 
-    capacidad_max = 60
+    capacidad_max = 125
     hijo1_int = [bin_to_int(bits) for bits in hijo1]
     if np.sum(np.multiply(hijo1_int, pesos)) > capacidad_max:
       print("Hijo1 descartado por exceder capacidad máxima.")
@@ -249,7 +249,7 @@ imprime(n,total,fitness,poblIt)
 # Inicia Iteraciones
 
 # Crear vector de 5x2 vacio  a = numpy.zeros(shape=(5,2))
-for iter in range(100): #Hace referencia a las generaciones de cromosomas
+for iter in range(5): #Hace referencia a las generaciones de cromosomas
   print("\n Iteración ", iter+1)
   
   # Iterar de 2 en 2 hasta completar todos los hijos (n es par)

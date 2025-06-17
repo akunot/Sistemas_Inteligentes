@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 mejores_fitness = []
+best_x_history = []
+best_y_history = []
 
 # Conversión de binario a real
 def bin2real(bin_array, Xmin, Xmax, bits):
@@ -25,13 +27,12 @@ def evalua(n, poblIt):
         yi[i] = y_real
         f = np.sin(2 * x_real) * 4 * np.cos(y_real) + 5 #Función de evaluación
         fitness[i] = f
-        # fitness[i] = 1 / (1 + f)  # Minimizar f, usar en caso de minimizar
     total = np.sum(fitness)
     return fitness, total, xi, yi
 
 # Imprimir tabla por iteración
 def imprime(n, total, fitness, poblIt, xi, yi, cromosoma):
-    global mejores_fitness
+    global mejores_fitness, acumulado
     print("\nTabla Iteración:")
     print("{:^10} {:^20} {:^15} {:^10} {:^10} {:^12} {:^12}".format(
         "Individuo", "Cromosoma (XY)", "Población", "x", "y", "Fitness", "Probacum"))
@@ -50,6 +51,7 @@ def imprime(n, total, fitness, poblIt, xi, yi, cromosoma):
         acumulado[i] = acumula
 
     print("Suma Z:      ", total)
+    # Guarda el mejor fitness de la iteración
     best = np.max(fitness[fitness != -np.inf]) if np.any(fitness != -np.inf) else 0
     mejores_fitness.append(best)
     return acumulado
@@ -57,6 +59,7 @@ def imprime(n, total, fitness, poblIt, xi, yi, cromosoma):
 # Selección por ruleta
 def seleccion(acumulado):
     escoje = np.random.rand()
+    print("escoje:      ", escoje)
     for i in range(len(acumulado)):
         if acumulado[i] > escoje:
             return poblIt[i]
@@ -90,10 +93,10 @@ Lx = int(np.ceil(np.log2(1 + (Xmax_x - Xmin_x) * 10**num_decimales))) #Longitud 
 Ly = int(np.ceil(np.log2(1 + (Xmax_y - Xmin_y) * 10**num_decimales))) #Longitud de Y
 lind = Lx + Ly #Longitud total
 
-x = 6  # población
+x = 7  # población
 Pcruce = 0.8 #Probabilidad de Cruce
 Pmuta = 0.2 #Probabilidad de Mutación
-elitismo = 1 #Hace referencia a la cantidad de individuos elitistas
+elitismo = 1 #Cantidad de individuos elitistas
 
 # Inicialización
 poblInicial = np.random.randint(0, 2, (x, lind))
@@ -105,16 +108,23 @@ fitness, total, xi, yi = evalua(x, poblIt)
 cromosoma = [''.join(str(bit) for bit in ind) for ind in poblIt]
 imprime(x, total, fitness, poblIt, xi, yi, cromosoma)
 
+# Registra el mejor de la evaluación inicial
+best_idx = np.argmax(fitness)
+best_x_history.append(xi[best_idx])
+best_y_history.append(yi[best_idx])
+
 # Iteraciones
-for iter in range(1000): #Hace referencia a las generaciones de cromosomas
+for iter in range(1000): #Generaciones
     print("\n Iteración ", iter + 1)
     elite_idx = np.argmax(fitness)
     elite_ind = poblIt[elite_idx].copy()
     nueva_pobl = []
 
-    for _ in range(x // 2):
+    for _ in range(int(np.ceil(x / 2))):
         p1 = seleccion(acumulado)
+        print("padre 1:", p1)
         p2 = seleccion(acumulado)
+        print("padre 2:", p2)
         hijo1, hijo2 = cruce(np.random.rand(), p1, p2)
         nueva_pobl.extend([hijo1, hijo2])
 
@@ -130,27 +140,38 @@ for iter in range(1000): #Hace referencia a las generaciones de cromosomas
     cromosoma = [''.join(str(bit) for bit in ind) for ind in poblIt]
     acumulado = np.zeros(x)
     imprime(x, total, fitness, poblIt, xi, yi, cromosoma)
+    
+    # Guarda las coordenadas del mejor individuo de esta iteración
+    best_idx = np.argmax(fitness)
+    best_x_history.append(xi[best_idx])
+    best_y_history.append(yi[best_idx])
 
-# Mejor individuo
+# Mejor individuo final
 max_index = np.argmax(fitness)
 print("\nMejor individuo final:", poblIt[max_index])
 print("Fitness final:", fitness[max_index])
 
 # Graficar progreso
 def graficar_superficie_fitness():
-    x_vals = np.linspace(Xmin_x, Xmax_x, 100) 
-    y_vals = np.linspace(Xmin_y, Xmax_y, 100)
+    x_vals = np.linspace(Xmin_x, Xmax_x, 1000) 
+    y_vals = np.linspace(Xmin_y, Xmax_y, 1000)
     X, Y = np.meshgrid(x_vals, y_vals)
     Z = np.sin(2 * X) * 4 * np.cos(Y) + 5
 
-    fig = plt.figure(figsize=(10, 7))
+    fig = plt.figure(figsize=(12, 8))
     ax = fig.add_subplot(111, projection='3d')
     surface = ax.plot_surface(X, Y, Z, cmap='viridis', edgecolor='none', alpha=0.9)
-    ax.set_title('Superficie del Fitness: f(x, y) = sin(2x) * 4cos(y) + 5')
+    
+    # Grafica en rojo los mejores individuos obtenidos a lo largo de las iteraciones
+    best_z = np.array(mejores_fitness)
+    ax.scatter(np.array(best_x_history), np.array(best_y_history), best_z, color='r', s=50, label="Mejor Fitness")
+    
+    ax.set_title('Superficie del Fitness y Mejores Individuos')
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('Fitness')
     fig.colorbar(surface, ax=ax, shrink=0.5, aspect=10, label='Fitness')
+    ax.legend()
     plt.show()
 
 graficar_superficie_fitness()
