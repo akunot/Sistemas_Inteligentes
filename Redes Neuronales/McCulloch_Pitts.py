@@ -15,7 +15,7 @@ weights_list = [[1, 1], [0, 0]]
 # Termino aditivo
 b = 0
 # Umbral para la funcion de activacion
-umbral = 0.6
+umbral = 2
 
 for inputs in inputs_list:
     for weights in weights_list:
