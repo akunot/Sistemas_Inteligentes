@@ -56,7 +56,7 @@ def imprime(n,total,fitness,poblIt):
     mejores_fitness.append(best)
     return acumulado
 
-def seleccion(acumulado):
+def seleccion(acumulado):  #Metodo de seleccion por ruleta
     escoje=np.random.rand()
     print("escoje:      ", escoje)
     

@@ -18,7 +18,7 @@ cromosoma4 = [1, 1, 1, 0, 1]
 poblInicial = np.array([cromosoma1, cromosoma2, cromosoma3, cromosoma4]
 """
 
-# MEJORA: Tamaño de la Población como parametro 
+# MEJORA: Tamaño de la Población como parametro
 #random.seed(1)
 #print("\n","aletorio:", random.randrange(2)) #Entero 0 o 1
 
@@ -28,7 +28,7 @@ poblInicial = np.array([cromosoma1, cromosoma2, cromosoma3, cromosoma4]
 def evalua(n, x, poblIt, utilidad, pesos):
     fitness = np.zeros(n)  # Inicializado correctamente
     total = 0
-    capacidad_max = 125
+    capacidad_max = 80
 
     def bin_to_int(bits):
       # Convierte una lista de bits a entero: [1,0] -> 1*2^1 + 0*2^0
@@ -92,7 +92,7 @@ def imprime(n,total,fitness,poblIt):
 def seleccion(acumulado):
     escoje = np.random.rand()
     print("escoje:      ", escoje)
-    
+
     padre = None
     for i in range(0, n):
       if acumulado[i] > escoje and poblIt[i] != 0:
@@ -107,7 +107,7 @@ def seleccion(acumulado):
     # Unificar listas de listas en una sola lista
     flattened = [bit for sublist in padre for bit in sublist]
     return flattened
-    
+
 def cruce(a1,p1,p2):
     if a1<Pcruce:
       print("Mas grande", Pcruce, "que ", a1, "-> Si Cruzan")
@@ -116,7 +116,7 @@ def cruce(a1,p1,p2):
       temp1 = p1[:cp]
       temp2 = p1[cp:]
       print("Padre1 corte en", cp, ":", temp1, temp2)
-      
+
       temp3 = p2[:cp]
       temp4 = p2[cp:]
       print("Padre2 corte en", cp, ":", temp3, temp4)
@@ -153,7 +153,7 @@ def cruce(a1,p1,p2):
 
     hijo1 = [[int(bit) for bit in sublist] if isinstance(sublist, (list, np.ndarray)) else int(sublist) for sublist in hijo1]
     hijo2 = [[int(bit) for bit in sublist] if isinstance(sublist, (list, np.ndarray)) else int(sublist) for sublist in hijo2]
-    
+
     print("hijo1: ", hijo1)
     print("hijo2: ", hijo2)
 
@@ -182,15 +182,15 @@ def mutar(individuo, Pmuta):
             individuo[i] = 1 - individuo[i]  # Flip bit
     print("Mutación: ", individuo)
     return individuo
-    
-      
-    
+
+
+
 #### Parametros #####
 x=4  #numero de variables de decision - Elementos diferentes: x
 n= int(m.log(x,2) * x)  #numero de individuos en la poblacion - cromosomas: n
 
 diccionario_cromosomas={} #Diccionario para almacenar la cantidad de objetos para cada variable
-for i in range(x):    
+for i in range(x):
   cantidad = int(input(f"Ingrese la cantidad de objetos para x{i+1}: "))
   if cantidad == 1:
      diccionario_cromosomas[f'x{i+1}'] = cantidad
@@ -222,15 +222,15 @@ for i in range(n):  # Para cada individuo en la población
   poblInicial.append(individuo)
 
 # Ingresar los datos del Problema de la Mochila - Peso y Utilidad de los Elementos
-pesos = [7, 6, 8, 2]
-utilidad = [4, 5, 6, 3]
+pesos = [10, 15, 20, 25]
+utilidad = [8, 12, 16, 20]
 #pesos = [5, 7, 10, 30, 25]
 #utilidad = [10, 20, 15, 30,15]
 ### CAPACIDAD 60
 
 print("Poblacion inicial Aleatoria:","\n", poblInicial)
-print("\n","Utilidad:", utilidad) 
-print("\n","Pesos", pesos )   
+print("\n","Utilidad:", utilidad)
+print("\n","Pesos", pesos )
 poblIt=poblInicial
 
 ######  FIN DE LOS DATOS INICIALES
@@ -251,14 +251,14 @@ imprime(n,total,fitness,poblIt)
 # Crear vector de 5x2 vacio  a = numpy.zeros(shape=(5,2))
 for iter in range(5): #Hace referencia a las generaciones de cromosomas
   print("\n Iteración ", iter+1)
-  
+
   # Iterar de 2 en 2 hasta completar todos los hijos (n es par)
   for i in range(0, n, 2):
     papa1 = seleccion(acumulado)  # Padre 1
     print("padre 1:", papa1)
     papa2 = seleccion(acumulado)  # Padre 2
     print("padre 2:", papa2)
-    
+
     hijoA, hijoB = cruce(np.random.rand(), papa1, papa2)
     if np.array_equal(hijoA, 0) or np.array_equal(hijoB, 0):
       print("Uno de los hijos fue descartado, realizando nuevo cruce")
@@ -267,7 +267,7 @@ for iter in range(5): #Hace referencia a las generaciones de cromosomas
     poblIt[i] = hijoA
     print("hijo2: ", hijoB)
     poblIt[i+1] = hijoB
-  
+
   print("\n Poblacion Iteración ", iter+1, "\n", poblIt)
   fitness, total = evalua(n, x, poblIt, utilidad, pesos)
   imprime(n, total, fitness, poblIt)
